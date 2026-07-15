@@ -4,6 +4,8 @@ Drained 3 queued `★ Insight` candidates from `~/.dev-loop/queue` (sessions
 `4de22ef2…` and `c55e6d60…`). Each was researched and verified against primary
 sources before ingest. 2 new pages + 1 merge; one PR.
 
+Cross-Check: Independent adversarial agent re-verified all 3 claims CONFIRMED against primary sources (kps `values.yaml` resource/resourcePath defaults; kubernetes-mixin `rules/apps.libsonnet` `image!=""` filter; Greg's ProcessSubstitution wiki + bash 4.4 `wait "$!"`); routing (observability / containers / platforms-tools merge) endorsed.
+
 ## Verified best-practice
 
 ### 1. Kubelet container metrics missing though scrape target is up (infrastructure/observability)
