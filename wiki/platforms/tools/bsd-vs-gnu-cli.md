@@ -9,7 +9,8 @@ sources:
   - https://man.freebsd.org/cgi/man.cgi?date(1)
   - https://man.freebsd.org/cgi/man.cgi?sed(1)
   - https://man.freebsd.org/cgi/man.cgi?seq(1)
-last_verified: 2026-07-10
+  - https://www.gnu.org/software/coreutils/manual/html_node/Time-conversion-specifiers.html
+last_verified: 2026-07-15
 related: [platforms-shells-portable-shell-scripts]
 ---
 
@@ -34,6 +35,7 @@ flags do not. Apply the portable fix per command:
 | PCRE grep | `grep -P` | Not supported | `grep -E` with ERE, or `perl -ne 'print if /…/'` |
 | Resolve path | `readlink -f` | Absent before macOS 13 | `cd "$(dirname "$f")" && pwd -P` for directories, `python3 -c 'import os,sys;print(os.path.realpath(sys.argv[1]))'`, or coreutils `greadlink -f` |
 | File metadata | `stat -c '%s'` | `stat -f '%z'` | Detect once: `stat -c %s "$f" 2>/dev/null \|\| stat -f %z "$f"` |
+| Sub-second (ms) stamp | `date +%3N` → 3-digit millis | Prints nanosecond digits for `%N`, but the width form `%3N` emits the literal `3N` | Detect by the **output** of `date +%3N`, not by whether `%N` works: `case "$(date +%3N)" in [0-9][0-9][0-9]) : ok ;; *) gdate +%3N 2>/dev/null \|\| python3 -c 'import time;print(f"{int(time.time()*1000)%1000:03d}")' ;; esac` |
 
 General strategy by situation:
 
@@ -49,6 +51,7 @@ General strategy by situation:
 | Case | Then |
 |------|------|
 | `command -v timeout` succeeds on macOS | Someone installed coreutils unprefixed — confirm `timeout --version` reports GNU coreutils before relying on GNU exit-code semantics (124 on timeout) |
+| `date +%N` returns digits on macOS | Not proof of GNU date — modern macOS (measured on 26.5.1) `date` prints nanoseconds for `%N` yet emits the literal `3N` for the width form `%3N`. Feature-detecting GNU by "`%N` is supported" is wrong; test that `date +%3N` yields three digits before using `%3N`, or a millisecond stamp corrupts to `…08.3NZ` |
 | Any flags passed to `echo` (`-e`, `-n`) | `echo` flag handling differs across shells and userlands — use `printf` for anything beyond a bare literal string |
 | Script needs bash 4+ features on macOS | Stock `/bin/bash` on macOS is 3.2 — use `#!/usr/bin/env bash` so a brew-installed bash is picked up, and state the required bash version in the script header |
 

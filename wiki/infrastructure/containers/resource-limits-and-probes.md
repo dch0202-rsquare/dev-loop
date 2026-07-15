@@ -9,7 +9,7 @@ sources:
   - https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
   - https://kubernetes.io/docs/concepts/workloads/pods/pod-qos/
 last_verified: 2026-07-10
-related: [infrastructure-deploy-rollout-and-rollback, backend-java-runtime-threads-and-memory]
+related: [infrastructure-deploy-rollout-and-rollback, backend-java-runtime-threads-and-memory, infrastructure-containers-pid1-log-flushing]
 ---
 
 # Resource Limits and Health Probes in Deployment Manifests

@@ -27,6 +27,7 @@ Match your situation to a "load when" line; load only matching pages.
 |------|-----------|
 | [image-builds](containers/image-builds.md) | Writing or reviewing a Dockerfile; images rebuild everything on small changes, build slowly, or are too large; choosing an image tagging scheme |
 | [resource-limits-and-probes](containers/resource-limits-and-probes.md) | Writing or reviewing Kubernetes-style deployment manifests; pods OOMKilled, evicted, or CPU-throttled; a dependency outage triggered a restart storm; traffic hitting pods that are not ready |
+| [pid1-log-flushing](containers/pid1-log-flushing.md) | A container's PID1 bash script tees stdout to a file (`exec > >(tee -a …)`) and log lines go missing (short jobs empty, long jobs lose the tail); handling SIGTERM/exit so a container's logs flush before teardown |
 
 ## data
 
@@ -46,3 +47,4 @@ Match your situation to a "load when" line; load only matching pages.
 |------|-----------|
 | [logs-metrics-signals](observability/logs-metrics-signals.md) | Instrumenting a new or existing service (logs, metrics, correlation ids); an incident revealed you couldn't see what happened; choosing between a log line and a metric; a metric label would carry unbounded values (user ids/UUIDs) |
 | [alerting](observability/alerting.md) | Creating or reviewing alerts; the team ignores a noisy pager; deciding whether a condition pages, tickets, or stays on a dashboard |
+| [kubelet-container-metrics-missing](observability/kubelet-container-metrics-missing.md) | kube-prometheus-stack kubelet targets are UP but `container_cpu_*`/`container_memory_*` series are empty and pod CPU/memory dashboards are blank; a non-standard kubelet (OrbStack, Docker Desktop, minimal k3s) emits only `machine_*` from cAdvisor; deciding to scrape `/metrics/resource`; distinguishing "target up" from "series present" |
