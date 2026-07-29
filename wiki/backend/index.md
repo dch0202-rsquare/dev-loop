@@ -5,7 +5,7 @@ three stack subtrees — route by concern first, stack second:
 
 | Subtree | Route there when |
 |---------|------------------|
-| [common](#common-language-agnostic) (below) | The concern is language-agnostic: API contracts, idempotency, JWT issuance, outbound calls, caching, jobs, transactions in app code, shared state/pools, exception structure |
+| [common](#common-language-agnostic) (below) | The concern is language-agnostic: API contracts, idempotency, JWT issuance, outbound calls, caching, jobs, transactions in app code, shared state/pools, exception structure, object-storage references |
 | [java](java/index.md) | You are writing/reviewing JVM backend code (Java/Kotlin, Spring, JPA/Hibernate) and the concern is stack-specific: entity mapping, persistence context, proxy pitfalls, JVM threads/memory |
 | [node](node/index.md) | You are writing/reviewing Node.js/TypeScript backend code: event-loop blocking, promise error handling, runtime validation at boundaries, graceful shutdown |
 | [python](python/index.md) | You are writing/reviewing Python backend code: GIL/concurrency model, pydantic validation, WSGI/ASGI workers, language traps |
@@ -63,6 +63,12 @@ Match your situation to a "load when" line; load only matching pages.
 | Page | Load when |
 |------|-----------|
 | [transaction-boundaries](common/orm/transaction-boundaries.md) | Deciding where a DB transaction starts/ends in application code — service vs controller vs per-repository-call boundaries, what belongs inside, annotation/proxy pitfalls, read-only flags, chunking batch writes; debugging partial writes or connection-pool exhaustion around open transactions |
+
+### storage
+
+| Page | Load when |
+|------|-----------|
+| [object-key-persistence](common/storage/object-key-persistence.md) | Persisting the result of a managed/high-level S3 upload (`s3.upload()`, `@aws-sdk/lib-storage` `Upload`, `S3Client::upload()`) — choosing which result field becomes the stored reference; downloads 404 for large files only while small ones work; a stored-URL column holds two different encodings; testing an upload-and-fetch round trip across the multipart threshold |
 
 ### concurrency
 

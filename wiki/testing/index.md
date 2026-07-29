@@ -3,9 +3,9 @@
 Route here for: writing or structuring automated tests — choosing the test
 level, selecting cases and assertions, test data and isolation, mock/fake
 decisions, fixing flaky tests, verifying tests can actually fail, testing
-async code (promises/timers/events), and browser E2E selector/wait/setup
-strategy. Release-process quality (gates, manual testing, bug triage) →
-wiki/qa/.
+async code (promises/timers/events), browser E2E selector/wait/setup
+strategy, and automated checks over documents that act as spec.
+Release-process quality (gates, manual testing, bug triage) → wiki/qa/.
 
 Match your situation to a "load when" line; load only matching pages.
 
@@ -52,3 +52,10 @@ Match your situation to a "load when" line; load only matching pages.
 | Page | Load when |
 |------|-----------|
 | [e2e-stability](e2e/e2e-stability.md) | Writing browser E2E tests (Playwright/Cypress-style); an E2E suite is flaky or slow; choosing selectors (role/label vs test id vs CSS), wait strategy, auth/data setup layer, or what to stub at the network edge |
+
+## docs-as-spec
+
+| Page | Load when |
+|------|-----------|
+| [gate-falsifiability](docs-as-spec/gate-falsifiability.md) | Writing or adopting an automated check over a spec document (grep/regex gate, mapping-table coverage check, cross-document signature check); the target document does not exist yet so the gate's first run is red; deciding whether a passing coverage check licenses "verified"; designing one negative control per check |
+| [markdown-table-parsing](docs-as-spec/markdown-table-parsing.md) | A checker reads Markdown tables programmatically — counting cells, extracting a column, asserting table shape; a row containing an escaped pipe (`\|` in EBNF/enum/type-union cells) is reported as broken while it renders correctly; deciding whether the row or the checker is wrong |
