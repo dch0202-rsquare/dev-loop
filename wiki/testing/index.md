@@ -2,10 +2,10 @@
 
 Route here for: writing or structuring automated tests — choosing the test
 level, selecting cases and assertions, test data and isolation, mock/fake
-decisions, fixing flaky tests, verifying tests can actually fail, testing
-async code (promises/timers/events), and browser E2E selector/wait/setup
-strategy. Release-process quality (gates, manual testing, bug triage) →
-wiki/qa/.
+decisions, fixing flaky tests, verifying tests and document gates can actually
+fail, testing async code (promises/timers/events), and browser E2E
+selector/wait/setup strategy. Release-process quality (gates, manual testing,
+bug triage) → wiki/qa/.
 
 Match your situation to a "load when" line; load only matching pages.
 
@@ -22,6 +22,7 @@ Match your situation to a "load when" line; load only matching pages.
 | [minimum-case-set](quality/minimum-case-set.md) | Writing tests for a function/endpoint/change and choosing which cases to cover; reviewing whether coverage suffices; picking boundary values by input type; adding a regression test for a bug fix |
 | [behavior-not-implementation](quality/behavior-not-implementation.md) | Deciding what a test should assert; a behavior-preserving refactor broke tests; tempted to expose privates for testing; deciding whether a snapshot test is appropriate |
 | [tests-that-cannot-fail](quality/tests-that-cannot-fail.md) | Reviewing tests that always pass; a bug shipped through an area the suite reported as covered; auditing a suspiciously green suite; judging whether an assertion, error-path test, or mock-based test can actually detect a defect |
+| [document-verification-gates](quality/document-verification-gates.md) | Writing or reviewing an automated check that a document meets a spec (RFC, API/schema doc, plan definition-of-done); a grep-based checklist passes a document that violates the requirement; authoring gates before the document exists; deciding what to assert beyond keyword presence (structure, modality, polarity, enum completeness, cross-references) |
 
 ## data
 

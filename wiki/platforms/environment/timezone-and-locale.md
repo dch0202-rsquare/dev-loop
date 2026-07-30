@@ -14,7 +14,7 @@ sources:
   - https://unicode.org/faq/casemap_charprop.html
   - https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap07.html
 last_verified: 2026-07-10
-related: [databases-schema-design-column-data-types, platforms-processes-background-services]
+related: [databases-schema-design-column-data-types, platforms-processes-background-services, platforms-environment-text-encoding-and-normalization]
 ---
 
 # Timezone and Locale as Hidden Inputs to Date and Text Code
@@ -59,6 +59,7 @@ Locale:
 | Zone given as an abbreviation or bare offset (`KST`, `EST`, `+09:00`) | Replace with the IANA `Area/Location` name — abbreviations are ambiguous and fixed offsets ignore DST history; the IANA database is the source of named zones |
 | `TZ` is set but empty or unparseable | glibc uses UTC, not the system zone — a mangled `TZ` export masquerades as "server is on UTC" |
 | Scheduler has no zone syntax (plain vixie cron) | Express the schedule in the daemon's zone and record that zone next to the entry, or move the job to a systemd timer where `OnCalendar` takes an IANA zone |
+| Two strings that look identical compare unequal, and no case conversion is involved | Locale is not the input — the binary forms differ; normalize both → [platforms-environment-text-encoding-and-normalization] |
 | Legacy data already stored in local wall-clock time | Record the zone it was written in alongside it before converting; UTC-converting zoneless rows guesses the source zone — route the schema change through [databases-schema-design-column-data-types] |
 
 ## Instead of

@@ -3,8 +3,9 @@
 Route here for: OS-level differences that break code and scripts moving between
 macOS, Linux, and Windows — shell portability, BSD-vs-GNU CLI flags, filesystem
 case/line-ending/path behavior, file permissions and exec bits across
-git/archives/containers, hidden environment inputs (timezone/locale, per-context
-PATH resolution), keeping processes alive as services or scheduled jobs, and
+git/archives/containers, hidden inputs to text and time handling
+(timezone/locale, Unicode normalization), per-context PATH resolution,
+keeping processes alive as services or scheduled jobs, and
 pinning toolchain versions across machines. Application logic stays in backend;
 SQL stays in databases.
 
@@ -27,6 +28,7 @@ Match your situation to a "load when" line; load only matching pages.
 | Page | Load when |
 |------|-----------|
 | [timezone-and-locale](environment/timezone-and-locale.md) | Date/time or text-processing code behaves differently across machines (passes locally, fails in CI or vice versa); a cron/scheduled job fires at the wrong hour or double-fires/skips around DST; reviewing code that formats, parses, or compares dates or strings; writing tests that touch time; building case-insensitive keys, sorted output, or number parsing that must agree across machines |
+| [text-encoding-and-normalization](environment/text-encoding-and-normalization.md) | A grep/comparison over non-ASCII text (Korean/CJK, accented Latin) returns zero hits on text that is visibly present; matching a substring or stem of syllabic text; deduplicating or key-ing on filesystem/user-supplied text; text moves between macOS (NFD) and Linux/Windows (NFC) and names collide or fail to match |
 | [path-resolution](environment/path-resolution.md) | "command not found" though the tool is installed; a different version runs than the one installed; sudo/CI/cron/GUI apps/ssh can't find a command the interactive shell finds; two installations of the same tool conflict; deciding how a script should locate its correctness-critical tools |
 
 ## filesystems
