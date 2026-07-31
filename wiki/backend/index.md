@@ -5,7 +5,7 @@ three stack subtrees — route by concern first, stack second:
 
 | Subtree | Route there when |
 |---------|------------------|
-| [common](#common-language-agnostic) (below) | The concern is language-agnostic: API contracts, idempotency, JWT issuance, outbound calls, caching, jobs, transactions in app code, shared state/pools, exception structure |
+| [common](#common-language-agnostic) (below) | The concern is language-agnostic: API contracts, idempotency, JWT issuance, outbound calls, caching, jobs, transactions in app code, shared state/pools, exception structure, LLM/model-API responses |
 | [java](java/index.md) | You are writing/reviewing JVM backend code (Java/Kotlin, Spring, JPA/Hibernate) and the concern is stack-specific: entity mapping, persistence context, proxy pitfalls, JVM threads/memory |
 | [node](node/index.md) | You are writing/reviewing Node.js/TypeScript backend code: event-loop blocking, promise error handling, runtime validation at boundaries, graceful shutdown |
 | [python](python/index.md) | You are writing/reviewing Python backend code: GIL/concurrency model, pydantic validation, WSGI/ASGI workers, language traps |
@@ -44,6 +44,12 @@ Match your situation to a "load when" line; load only matching pages.
 |------|-----------|
 | [idempotent-handlers](common/jobs/idempotent-handlers.md) | Writing a queue consumer, background job, or scheduled task — surviving at-least-once redelivery, dedupe by message id, transactional outbox for enqueue-with-DB-write, poison messages/DLQ, checkpointing long jobs; debugging duplicate side effects from jobs |
 | [scheduled-job-overlap](common/jobs/scheduled-job-overlap.md) | A scheduled job may still be running when its next start fires (cron, K8s CronJob concurrencyPolicy, multi-host schedulers); doubled batch effects at schedule boundaries; pairing skip-on-overlap with hang timeouts |
+
+### llm
+
+| Page | Load when |
+|------|-----------|
+| [response-completeness-validation](common/llm/response-completeness-validation.md) | Application code consumes an OpenAI-compatible `/v1/chat/completions` response and uses the text as a deliverable — deciding what to check before accepting it (`finish_reason`, blank `content`, `reasoning`/`reasoning_content`), sizing the token budget for a reasoning model, writing the failure message that identifies the served model; debugging empty or truncated LLM output returned as HTTP 200, or a configured model alias resolving to a different model |
 
 ### errors
 

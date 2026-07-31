@@ -40,6 +40,7 @@ Match your situation to a "load when" line; load only matching pages.
 
 | Page | Load when |
 |------|-----------|
+| [non-interactive-cli-invocation](processes/non-interactive-cli-invocation.md) | A script/hook/CI step/agent session runs another CLI that can also be interactive (agent CLI in `-p`/`--print` mode, `ssh`, a prompting package manager or `git` command) and the call hangs with no output; wiring stdin and a timeout for a non-interactive child process; deciding whether a hang is client-side or server-side before tuning either; needing a pty for a pty-only tool |
 | [background-services](processes/background-services.md) | Something must run persistently or on a schedule on a dev machine or server (daemon, watcher, cron-style job); a "started" process dies when the terminal/SSH/agent session ends; choosing nohup vs LaunchAgent vs systemd unit vs cron/timer; a job works in the terminal but fails under cron/launchd (minimal environment); wiring service logs and restart policy |
 
 ## toolchains

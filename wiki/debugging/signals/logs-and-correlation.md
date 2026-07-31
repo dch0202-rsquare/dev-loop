@@ -8,7 +8,7 @@ sources:
   - https://sre.google/sre-book/effective-troubleshooting/
   - https://www.w3.org/TR/trace-context/
 last_verified: 2026-07-10
-related: [debugging-signals-stack-traces, debugging-methodology-hypothesis-testing]
+related: [debugging-signals-stack-traces, debugging-methodology-hypothesis-testing, platforms-processes-non-interactive-cli-invocation]
 ---
 
 # Diagnosing Across Services with Logs
