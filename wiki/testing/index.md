@@ -22,6 +22,7 @@ Match your situation to a "load when" line; load only matching pages.
 | [minimum-case-set](quality/minimum-case-set.md) | Writing tests for a function/endpoint/change and choosing which cases to cover; reviewing whether coverage suffices; picking boundary values by input type; adding a regression test for a bug fix |
 | [behavior-not-implementation](quality/behavior-not-implementation.md) | Deciding what a test should assert; a behavior-preserving refactor broke tests; tempted to expose privates for testing; deciding whether a snapshot test is appropriate |
 | [tests-that-cannot-fail](quality/tests-that-cannot-fail.md) | Reviewing tests that always pass; a bug shipped through an area the suite reported as covered; auditing a suspiciously green suite; judging whether an assertion, error-path test, or mock-based test can actually detect a defect |
+| [verification-harness-validity](quality/verification-harness-validity.md) | You built a harness that grades tests or enforces rules (mutation script, spec/rule checker, CI quality gate) and are about to cite its score; the result is uniform (everything caught, everything passing, identical output per case); deciding what control run or baseline a harness needs before its numbers count as evidence; a harness runs the suite in an isolated/temp tree |
 
 ## data
 

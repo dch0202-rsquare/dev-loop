@@ -4,8 +4,8 @@ Route here for: OS-level differences that break code and scripts moving between
 macOS, Linux, and Windows — shell portability, BSD-vs-GNU CLI flags, filesystem
 case/line-ending/path behavior, file permissions and exec bits across
 git/archives/containers, hidden environment inputs (timezone/locale, per-context
-PATH resolution), keeping processes alive as services or scheduled jobs, and
-pinning toolchain versions across machines. Application logic stays in backend;
+PATH resolution, endpoint/base-URL overrides), keeping processes alive as
+services or scheduled jobs, and pinning toolchain versions across machines. Application logic stays in backend;
 SQL stays in databases.
 
 Match your situation to a "load when" line; load only matching pages.
@@ -27,6 +27,7 @@ Match your situation to a "load when" line; load only matching pages.
 | Page | Load when |
 |------|-----------|
 | [timezone-and-locale](environment/timezone-and-locale.md) | Date/time or text-processing code behaves differently across machines (passes locally, fails in CI or vice versa); a cron/scheduled job fires at the wrong hour or double-fires/skips around DST; reviewing code that formats, parses, or compares dates or strings; writing tests that touch time; building case-insensitive keys, sorted output, or number parsing that must agree across machines |
+| [alternate-service-endpoints](environment/alternate-service-endpoints.md) | Redirecting a CLI/SDK to a non-default endpoint by environment variable (gateway, proxy, local emulator, API-compatible reimplementation) and the first request fails with 404/400/auth/limit errors; deciding whether the base URL includes the API version segment; a client's default size or token caps do not fit the new backend; separating "the endpoint cannot serve this" from "the client is misconfigured" |
 | [path-resolution](environment/path-resolution.md) | "command not found" though the tool is installed; a different version runs than the one installed; sudo/CI/cron/GUI apps/ssh can't find a command the interactive shell finds; two installations of the same tool conflict; deciding how a script should locate its correctness-critical tools |
 
 ## filesystems
