@@ -3,7 +3,8 @@
 Route here for: writing or structuring automated tests — choosing the test
 level, selecting cases and assertions, test data and isolation, mock/fake
 decisions, fixing flaky tests, verifying tests can actually fail, validating a
-check before its target exists, testing
+check before its target exists, judging a prior output artifact as a
+before/after comparison baseline, testing
 async code (promises/timers/events), and browser E2E selector/wait/setup
 strategy. Release-process quality (gates, manual testing, bug triage) →
 wiki/qa/.
@@ -25,6 +26,7 @@ Match your situation to a "load when" line; load only matching pages.
 | [tests-that-cannot-fail](quality/tests-that-cannot-fail.md) | Reviewing tests that always pass; a bug shipped through an area the suite reported as covered; auditing a suspiciously green suite; judging whether an assertion, error-path test, or mock-based test can actually detect a defect |
 | [checks-that-cannot-pass](quality/checks-that-cannot-pass.md) | Authoring a check whose target does not exist yet (grep/regex gate on an unwritten file or doc section, lint/scan rule, schema assertion on an unbuilt endpoint, a plan's verification command) and it has only ever been observed failing; reviewing a plan's gates before adopting them; separating "target missing" from "content missing" in a gate's exit status |
 | [spec-artifact-checks](quality/spec-artifact-checks.md) | Writing or reviewing an automated check that a mapping table covers every rule/field/enum case, or that ids resolve across documents; deciding whether a green check earned "verified" or only "present"; designing one negative control per check in a multi-check harness; parsing Markdown table rows programmatically in a doc-as-spec repo |
+| [baselines-from-published-artifacts](quality/baselines-from-published-artifacts.md) | Measuring what a code change does to an output (export, report, estimate file, CSV/JSON snapshot) and planning to use a file from an earlier run as the "before" side; a total or row count matches between that file and the current run and you are about to read the match as "nothing else differs"; deciding how to date an artifact whose producing revision is not recorded |
 | [harness-reverse-controls](quality/harness-reverse-controls.md) | You built a harness that scores how well something is verified (mutation run, doc/spec gate suite, CI check matrix) and are about to cite its score in a commit, PR, README, or report; its verdicts come out uniform (every case caught, or every case green); deciding what control run proves the harness discriminates, how to score errored/never-ran cases, and what the harness's isolated working tree must contain |
 
 ## data

@@ -8,8 +8,11 @@ sources:
   - https://martinfowler.com/articles/practical-test-pyramid.html
   - https://abseil.io/resources/swe-book/html/ch12.html
   - https://martinfowler.com/bliki/TestDrivenDevelopment.html
-last_verified: 2026-07-10
-related: [testing-strategy-test-level-choice, testing-quality-behavior-not-implementation, testing-quality-checks-that-cannot-pass]
+  - https://arxiv.org/html/2411.09846v1
+  - https://doi.org/10.1145/1543134.1411292
+  - https://hypothesis.works/articles/what-is-property-based-testing/
+last_verified: 2026-08-05
+related: [testing-strategy-test-level-choice, testing-quality-behavior-not-implementation, testing-quality-checks-that-cannot-pass, testing-quality-tests-that-cannot-fail, testing-quality-harness-reverse-controls]
 ---
 
 # Selecting the Minimum Case Set for a Function or Endpoint
@@ -48,6 +51,25 @@ sufficient.
 5. When fixing a bug, **first write a regression test that reproduces the bug
    and fails** on the current code, then fix until it passes (red → green).
    The failing run is the proof the test guards the bug.
+6. When the unit returns a **composite value** (dict, tuple, record, response
+   body), extend step 2 across the whole returned shape:
+   1. List the returned fields, then grep the test file for each field name.
+      A field no assertion ever reads is unguarded no matter how many
+      assertions the file contains — the fault reaches and infects state but
+      never becomes *revealed*, which is the oracle condition the RIPR model
+      adds on top of reach/infect/propagate.
+   2. Confirm the gap by mutating the code that computes each unread field and
+      requiring the suite to stay green. A surviving mutant names the missing
+      assertion; add it there rather than adding cases at the fields already
+      covered ("assertion amplification").
+   3. Assert the **invariants that relate the fields** — ordering, bounds,
+      totals (`lo ≤ point ≤ hi`, `sum(parts) == total`). Per-field equality
+      assertions cannot express a relation between two fields, so a swap of
+      two correctly-computed fields passes every one of them.
+   4. Check those invariants over the **exhaustive grid** of the parameter
+      space when it is small and finite, not at one sampled point — the
+      SmallCheck argument for testing "properties for all values up to some
+      limiting depth" instead of a random sample.
 
 ## Edge cases
 
@@ -57,6 +79,9 @@ sufficient.
 | Inputs are combinatorial (many flags/fields) | Test each behavior's cases independently plus one representative combination — enumerate combinations only where behaviors interact |
 | The boundary is unreachable through the public interface (guarded upstream) | Test at the level that owns the guard; do not force unreachable inputs through the unit ([testing-quality-behavior-not-implementation]) |
 | Reviewing a change that only adds a case to existing behavior | Require the new case's test; the existing normal/error/boundary set stands |
+| The grid of parameter combinations is too large to enumerate | Assert the invariants as properties over generated inputs (property-based testing) and keep the enumerated grid for the axis the change touches |
+| An unread field is genuinely internal (debug metadata, timing) | Record that in the test file next to the covered fields, so the next reader knows the omission was decided rather than missed |
+| Every field is asserted, but each at a different input point | Add one case that asserts the full shape at a single input — field-by-field assertions spread across cases never compare the fields to each other |
 
 ## Instead of
 
@@ -66,9 +91,15 @@ sufficient.
 | Assert only `toThrow()` with no error type | Assert the error type and the message/code callers depend on | The test passes when the wrong error fires for the wrong reason |
 | Fix a bug and add the test after the fix, never seeing it fail | Write the reproducing test first, watch it fail, then fix | A test that never failed can pass vacuously and guard nothing |
 | Chase a coverage percentage by touching lines without assertions | Add normal/error/boundary cases per behavior | Line coverage without outcome assertions detects nothing |
+| Read a high assertion count on a multi-field result as coverage of that result | Grep each returned field name against the assertions and mutate the unread ones | Assertions cluster on the one field the author was thinking about; the rest of the returned shape can be arbitrarily wrong and stay green |
+| Assert each field of a composite result separately and stop there | Add the cross-field invariants (ordering, bounds, totals) | No single-field assertion can detect two fields swapped or a bound inverted, because each field is individually plausible |
 
 ## Sources
 
 - https://martinfowler.com/articles/practical-test-pyramid.html — test one condition per test; cover happy path and edge cases
 - https://abseil.io/resources/swe-book/html/ch12.html — test behaviors (guarantees), not methods; clear assertions per behavior
 - https://martinfowler.com/bliki/TestDrivenDevelopment.html — write the failing test first (red–green–refactor)
+- https://arxiv.org/html/2411.09846v1 — RIPR: a fault must "be executed (Reachability), infect the program states (Infection), propagate the infection (Propagation), and have appropriate test oracles to reveal the fault (Revealability)"; the developer must "create a test assertion to detect an infected state that Propagated back to the test, in order to Reveal the mutation", and where the oracle is insufficient "adding additional assertions, or assertion amplification may help reveal the fault"
+- https://doi.org/10.1145/1543134.1411292 — Runciman, Naylor & Lindblad, "SmallCheck and Lazy SmallCheck: automatic exhaustive testing for small values", Haskell '08 / SIGPLAN Notices 44(2):37–48: "instead of using a sample of randomly generated values they test properties for all values up to some limiting depth, progressively increasing this limit"
+- https://hypothesis.works/articles/what-is-property-based-testing/ — property-based testing constructs tests whose fuzzed failures "reveal problems with the system under test that could not have been revealed by direct fuzzing of that system"
+- Field reproduction 2026-08-05 (Python estimation engine): a function returning `{lo, sp, hi}` had 58 passing assertions, all reading `sp`. Four mutations to the `lo`/`hi` percentile selection left every assertion green while a no-op control confirmed the harness discriminated; an exhaustive grid over the same parameter space then found 13 combinations violating `lo ≤ sp ≤ hi`

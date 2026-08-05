@@ -1,95 +1,154 @@
-# Consolidated review — knowledge PRs #6–#13
+# Knowledge flush — 3 insight(s)
 
-Eight fork PRs (`dch0202-rsquare`, 2026-07-28 → 2026-08-02) were reviewed together
-against `AGENTS.md`. Each PR was audited by an independent reviewer (format rules,
-sources, vague-qualifier ban, ≤120 body lines, index/log invariants), then
-cross-compared to catch duplication the per-PR flushes could not see — they branched
-independently off the same main and rewrote the same shared index/log files. Fork
-branches can't be edited from here and several PRs needed content changes (drop a
-duplicate, merge a colliding page), so this branch carries the reconciled end-state
-rather than merging each PR as-is (which would import the duplicates).
+All three came out of the same week's estimation-engine work and share one shape:
+**a check that runs, passes, and cannot see the thing it was written to see.** They
+route to `testing/quality` as one amendment each to the two pages that own
+assertion design, plus one new page for the artifact-baseline case.
 
 ## Verified best-practice
 
-Sources are per-page and were live-verified in each originating PR's flush; the
-independent re-reviews re-checked them. Landed pages and their evidence base:
+### 1. Value-preserving refactor (literal → config constant) — assert the dependency, not the value
+**Claim:** when a refactor replaces a magic literal with a constant read from
+config/SSOT, first compute whether the rendered output is byte-identical to the
+removed literal. If it is, an assertion on that output cannot fail when the literal
+is pasted back; substitute a sentinel into the constant (scoped patch) and assert the
+output follows it.
 
-| Page | Confidence | Source basis |
-|------|-----------|--------------|
-| backend/common/llm/completion-response-validation | verified | OpenAI reasoning guide + chat `object` spec (5 `finish_reason` values), vLLM/LiteLLM reasoning fields; field incident (200/`length`/empty content/8,173-char reasoning) |
-| backend/common/llm/context-window-budget | verified | Claude context-window docs, LiteLLM exception mapping, vLLM/Claude Code env-var docs |
-| backend/common/integrations/externally-owned-defaults | verified | OpenAI deprecations (notice windows) + models `list`, LiteLLM model_discovery; field incident (alias removed between PR verify and review → 400) |
-| backend/common/storage/object-key-persistence | verified | AWS S3 CompleteMultipartUpload + managed-upload API/source, aws-sdk-js issues #1158/#5656 |
-| infrastructure/containers/host-cgroup-visibility | field-tested | cgroup_namespaces(7), Docker `--cgroupns=host`, nsenter, k8s #103363; OrbStack repro |
-| infrastructure/observability/missing-container-metrics | verified/field-tested | k8s resource-metrics-pipeline docs, kube-prometheus-stack values, kubernetes-mixin; OrbStack #2217 repro |
-| platforms/environment/unicode-text-matching | verified | UAX #15, Unicode core §3.12, APFS FAQ, POSIX grep; local repro (macOS 15/APFS, grep 2.6.0-FreeBSD, Python 3.13) |
-| platforms/shells/command-text-inspected-before-execution | verified | Claude Code hooks docs, POSIX shell §2.6; local reproduction |
-| platforms/processes/non-interactive-cli-invocation | verified | GNU nohup, OpenBSD ssh/ssh_config, git, timeout man pages; no-request-in-gateway-log field incident |
-| qa/document-verification/spec-document-gates | field-tested | ESLint, Google mutation testing, RFC 2119, Vale, markdownlint; 32/32 mutant / 62/62 intact RFC sessions |
-| qa/document-verification/editing-a-gated-document | field-tested | pgrep, Vale, markdownlint; in-house editing methodology |
-| testing/quality/checks-that-cannot-pass | verified | James Shore AoAD2, POSIX grep exit status, Semgrep rule-testing, pytest exit codes; BSD/ugrep measurement |
-| testing/quality/spec-artifact-checks | verified | JSON Schema, ESLint RuleTester, pitest, GFM table spec; local cell-count repro + GitHub renderer cross-check |
-| testing/quality/harness-reverse-controls | verified | mutation-testing + CI-control sources; field repro (re-fetched all cited URLs, PASS) |
+**Sources checked**
+- <https://martinfowler.com/bliki/DefinitionOfRefactoring.html> — refactoring is "a
+  change made to the internal structure of software … without changing its observable
+  behavior". Fetched; quoted verbatim. This is the mechanism: the assertion observes
+  exactly the thing the refactor is defined not to change.
+- <https://pitest.org/quickstart/mutators/> — the Inline Constant mutator "mutates
+  inline constants… a literal value assigned to a non-final variable", replacing `1`
+  with `0` or otherwise incrementing. Fetched; confirms the sentinel substitution is
+  the hand-run form of an established mutation operator, i.e. the directive is not a
+  local invention.
+- <https://docs.pytest.org/en/stable/how-to/monkeypatch.html> — `setattr`/`setitem`,
+  "All modifications will be undone after the requesting test function or fixture has
+  finished", and "Prefer patching the reference that your code uses instead of
+  patching the original object". Fetched. This **upgraded** the queued directive: the
+  candidate said manual `try/finally`; the runner's scoped patch is leak-safe, and the
+  namespace warning became the `from x import CONST` edge case.
+- Field evidence (session): `"DB ×%s" % E.DB_MULT` with `DB_MULT = 1.3` renders
+  exactly the removed `DB ×1.3` literal — computed, not assumed; the literal version
+  went red only under sentinel substitution.
 
-Three pages were reconciled from two overlapping PR versions each, keeping the more
-complete/better-sourced body and folding in the other's unique cases:
-- **completion-response-validation** — #12 body (all five `finish_reason` values,
-  `tool_calls`/`function_call` carve-out, streaming, Responses API, "reasoning is
-  scratch, not deliverable") kept in `llm/` (coherent with #6/#13); folded in #6's
-  DeepSeek first-party edge + the field incident.
-- **externally-owned-defaults** — #12 generalized body (any repo-external resource)
-  in `integrations/`; folded in #6's alias-removed field incident + the
-  gateway-config-vs-live-upstream nuance.
-- **non-interactive-cli-invocation** — #12 body (GNU-nohup extension precision,
-  ssh -n stdin-detach vs BatchMode, pre-log DNS/TLS/proxy + `curl -v`) kept; folded
-  in #11's DEBIAN_FRONTEND, pager/color TTY case, wrapper-CLI case, field incident.
+**Confidence: verified** (official docs for both the mechanism and the technique).
+
+### 2. Composite return values — the oracle must read the field the fault reaches
+**Claim:** when a function returns a dict/tuple/record, enumerate the returned fields
+against the assertions; a field no assertion reads is unguarded regardless of
+assertion count. Confirm by mutation, then assert the cross-field invariants over an
+exhaustive grid.
+
+**Sources checked**
+- <https://arxiv.org/html/2411.09846v1> — RIPR: a fault must "be executed
+  (Reachability), infect the program states (Infection), propagate the infection
+  (Propagation), and have appropriate test oracles to reveal the fault
+  (Revealability)"; the developer must "create a test assertion to detect an infected
+  state that Propagated back to the test"; where the oracle is insufficient,
+  "assertion amplification may help reveal the fault". Fetched; verbatim. This is the
+  named mechanism the queued candidate lacked, and it supplies the remedy's term.
+- <https://doi.org/10.1145/1543134.1411292> (Runciman, Naylor & Lindblad, Haskell '08,
+  SIGPLAN Notices 44(2):37–48) — "instead of using a sample of randomly generated
+  values they test properties for all values up to some limiting depth". Verified via
+  the York institutional record (abstract + full citation + DOI), which is why the
+  citation is by DOI rather than a paywalled PDF link.
+- <https://hypothesis.works/articles/what-is-property-based-testing/> — fetched;
+  supports the invariant-over-many-inputs framing and the "grid too large" edge case.
+- Attempted and **not** cited: Li & Offutt's oracle-strategy paper
+  (`albany.edu/faculty/offutt/research/papers/testOracle.pdf`) — the PDF downloaded but
+  could not be rendered locally (no poppler), so nothing from it is quoted. The RIPR
+  wording above comes from a source actually read.
+- Field evidence (session): 58 assertions all reading `sp`; four mutations to the
+  `lo`/`hi` percentile selection survived, a no-op control confirmed the harness
+  discriminated, and an exhaustive grid found 13 combinations violating `lo ≤ sp ≤ hi`.
+
+**Confidence: verified.**
+
+### 3. A previously published artifact as the "before" baseline
+**Claim:** date the artifact (provenance stamp, or schema fields the old code could
+not emit) before using it; compare row-by-row on a stable key rather than trusting an
+aggregate match; when it predates the change, rebuild `before` by reverting only the
+change under test and re-running.
+
+**Sources checked**
+- <https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Validating.html> — validation
+  "compares each row in the source with its corresponding row at the target, verifies
+  the rows contain the same data, and reports any mismatches", "requires that the table
+  has a primary key or unique index", and records failures per row key with "all
+  source/target column values which do not match for the given key". Fetched. Supplies
+  the keyed row-level comparison shape, including why a stable key is a precondition.
+- <https://slsa.dev/spec/v1.0/provenance> — provenance exists to "describe how an
+  artifact or set of artifacts was produced so that consumers of the provenance can
+  verify that the artifact was built according to expectations"; `resolvedDependencies`
+  records the source repo and resolved commit. Fetched. Supports "stamp what you emit"
+  as the general fix rather than a local convention.
+- <https://michaelfeathers.silvrback.com/characterization-testing> — "The purpose of
+  characterization testing is to document your system's actual behavior, not check for
+  the behavior you wish your system had"; the expected value comes from running the
+  code. Fetched. Names the re-run baseline (step 4) as an established practice.
+- Field evidence (session): `estimated.json` matched the current run's counted total
+  (211.48) but one row differed in both category and value; a `dead` field null for
+  every row dated the artifact to before a regex-lookbehind fix; the differing issue
+  was a roll-up parent excluded from the total, which is why the aggregate agreed.
+
+**Confidence: verified** for the comparison and provenance mechanics. The
+aggregate-masking claim rests on the reproduction plus the DMS keyed-comparison
+design, and the page states it as the literal claim an aggregate match supports rather
+than as a general theorem.
 
 ## Existing-layer check
 
-Cross-PR and against-main duplication was the focus. Findings and resolutions:
+**Pages read in full:** `wiki/testing/index.md`, `quality/tests-that-cannot-fail.md`,
+`quality/checks-that-cannot-pass.md`, `quality/harness-reverse-controls.md`,
+`quality/minimum-case-set.md`; plus a directory survey of `wiki/qa/` and
+`wiki/debugging/` and a repo-wide grep for `baseline|snapshot|before/after`.
 
-- **spec-artifact-checks (#8) ≡ document-conformance-checks (#9)** — same case
-  (coverage-vs-validity split, per-check negative controls, GFM pipe parsing,
-  ESLint/Semgrep/mutation examples). #9's report predated awareness of #8. →
-  **#8 kept canonical; #9's page dropped, `testing/docs-as-spec` category not created.**
-- **completion-response-validation (#6) ≈ llm-response-completeness (#12)** — ~95%
-  same case (HTTP 200 ≠ usable output; `length`/blank/reasoning-budget). →
-  **merged into one `llm/` page; #12's `integrations/` copy dropped.**
-- **gateway-model-alias-defaults (#6) ≈ externally-owned-defaults (#12)** — ~80%;
-  #12 generalizes the model-alias case to any external resource. →
-  **kept the general `integrations/` page; #6's LLM-only page dropped.**
-- **non-interactive-cli-invocation** — created by BOTH #11 and #12 (file collision).
-  → **single reconciled page.**
-- Distinct (no overlap, all landed): checks-that-cannot-pass, harness-reverse-controls,
-  spec-document-gates, editing-a-gated-document, unicode-text-matching,
-  command-text-inspected-before-execution, object-key-persistence, context-window-budget,
-  host-cgroup-visibility, missing-container-metrics.
-- Reciprocal `related:` links added on existing pages (tests-that-cannot-fail,
-  timeouts-and-retries, environment-config, release-gates, background-services,
-  portable-shell-scripts, timezone-and-locale, paths-case-and-line-endings,
-  acceptance-criteria, resource-limits-and-probes, logs-metrics-signals,
-  minimum-case-set). A dropped-page backlink (#6 → gateway-model-alias-defaults on
-  environment-config and release-gates) was retargeted to externally-owned-defaults.
-- Invariants verified programmatically: all `related:`/inline `[id]` references
-  resolve, every page listed in its domain index, no duplicate ids, no page >120
-  body lines.
+**Also checked the 12 open `dev-loop:knowledge` PRs**, since unmerged pages are
+invisible to `main` but not to the reviewer:
+
+| Overlap candidate | Finding |
+|---|---|
+| `quality/tests-that-cannot-fail.md` — amended by open PRs #23, #28, #29 | **Textual conflict expected, not semantic.** #28 adds edge cases about *applying* a mutation (sed patterns, guard direction, interpreter mismatch); #23 and #29 only extend `related:`. The rows added here (value-preserving refactor, sentinel scoping) are disjoint from all three. All four touch the frontmatter `related:`/`sources:` block, so a conflict there is likely — resolve by keeping the union of ids and source URLs |
+| `quality/differential-run-agreement.md` (open PR #22, not on `main`) | Adjacent, **not** a duplicate: that page compares two implementations of one spec on the same input; this one compares one implementation against its own stale output. No `related:` link added, because linking a page that does not exist on `main` would be a broken reference if #22 is rejected — worth adding if #22 merges first |
+| `quality/harness-reverse-controls.md` (open PR #24) | Covers the no-op control that made insight 2's mutation run trustworthy. Linked one-way (new page → it) rather than editing it, to keep #24 conflict-free |
+| `qa/process/regression-scope.md`, `debugging/methodology/verify-the-fix.md` (both in open PR #25) | Genuinely adjacent to the new page; linked one-way from the new page only, for the same reason |
+| `quality/minimum-case-set.md` | No open PR touches it — safe to amend |
+
+**Conflicts with existing directives:** none. Insight 1 extends the page's
+break-the-code rule to a case where breaking the code is *undetectable by
+construction*; insight 2 extends its step 2 ("assert an observable outcome") from one
+outcome to the whole returned shape.
+
+**Related links added:** `tests-that-cannot-fail` ↔ new baselines page (both are
+comparisons that cannot show the change); `tests-that-cannot-fail` →
+`minimum-case-set` (a surviving mutant may mean the oracle never reads the field);
+`minimum-case-set` → `tests-that-cannot-fail` + `harness-reverse-controls`; new page →
+`tests-that-cannot-fail`, `harness-reverse-controls`, `minimum-case-set`,
+`qa-process-regression-scope`, `debugging-methodology-verify-the-fix` (all five ids
+confirmed present on `main`).
 
 ## Routing decision
 
-- `backend/common/llm/` (new) — LLM-specific server concerns: completion-response-validation,
-  context-window-budget. Coherent home shared by #6 and #13.
-- `backend/common/integrations/` (new) — general repo-external-dependency concern:
-  externally-owned-defaults. Kept separate from `llm/` because its scope is any
-  external resource (bucket/queue/index), not LLM-only.
-- `backend/common/storage/` (new) — object-key-persistence.
-- `qa/document-verification/` (new) — spec-document-gates, editing-a-gated-document.
-  Introduced by both #10 and #11; unified into one index section.
-- `testing/quality/` (existing) — checks-that-cannot-pass, spec-artifact-checks,
-  harness-reverse-controls (test/check-authoring discipline, distinct from
-  qa/document-verification which is release-process gate design).
-- `platforms/{environment,shells,processes}/` (existing) — unicode-text-matching,
-  command-text-inspected-before-execution, non-interactive-cli-invocation.
-- `infrastructure/{containers,observability}/` (existing) — host-cgroup-visibility,
-  missing-container-metrics.
+| Insight | Target | Action | Why |
+|---|---|---|---|
+| 1 — value-preserving refactor test | `testing/quality/tests-that-cannot-fail.md` | **Merge** — 1 never-fails row, 4 edge cases, 1 Instead-of row, 3 sources, `last_verified` → 2026-08-05 | The page's whole subject is "an assertion that cannot detect a defect". This is one more instance, not a new situation — a separate page would split the never-fails table across two files |
+| 2 — composite return values | `testing/quality/minimum-case-set.md` | **Merge** — new step 6 with four sub-steps, 3 edge cases, 2 Instead-of rows, 3 sources | The question is *which assertions* a result needs, which is this page's remit (step 2 already says "assert an observable outcome"). Placed here rather than in `tests-that-cannot-fail` because the deliverable is an assertion-selection rule; the detection half is cross-linked |
+| 3 — published artifact as baseline | **New page** `testing/quality/baselines-from-published-artifacts.md` (75 body lines) | Create | No existing page covers validating a *baseline*. `tests-that-cannot-fail` is about assertions inside a suite, `harness-reverse-controls` about a harness's own score, `differential-run-agreement` (unmerged) about two implementations. Folding it into any of those would break the one-case-per-page rule |
 
-Source PRs #6–#13 are closed with a disposition comment crediting the author.
+**New category:** none. `testing/quality` already holds the "can this check see
+anything" family (`tests-that-cannot-fail`, `checks-that-cannot-pass`,
+`spec-artifact-checks`, `harness-reverse-controls`), and the new page asks the same
+question of a comparison baseline.
+
+**Plumbing:** `wiki/testing/index.md` — new "load when" row plus the domain
+"route here for" line extended with baseline judgement; `log.md` — one `ingest` entry
+naming the new page, both amendments, and the verified sources.
+
+**Format checks run:** body lengths 75 / 89 / 67 lines (limit 120); banned vague
+qualifiers (`usually`, `generally`, `consider`, `might want`, `as appropriate`,
+`typically`, `probably`) grep-clean across all three files; every anti-pattern sits in
+an `Instead of` row paired with its replacement; all five `related:` ids resolved
+against `main`.
