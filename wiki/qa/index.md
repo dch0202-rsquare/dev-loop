@@ -2,8 +2,9 @@
 
 Route here for: release-quality process — acceptance criteria, gates,
 regression scoping, test-environment parity, post-release verification, bug
-reports, manual/exploratory testing, and automated verification of document
-deliverables (specs/RFCs). Writing automated test code → wiki/testing/;
+reports, manual/exploratory testing, integration-gap census after a parallel
+work split, sweeping a review's defect class over the fix diff, and automated
+verification of document deliverables (specs/RFCs). Writing automated test code → wiki/testing/;
 rollout/canary/rollback mechanics → wiki/infrastructure/.
 
 Match your situation to a "load when" line; load only matching pages.
@@ -18,6 +19,8 @@ Match your situation to a "load when" line; load only matching pages.
 | [severity-and-priority](process/severity-and-priority.md) | Triaging a bug — deciding how bad it is and when it gets fixed; a triage stalled on a severity debate |
 | [post-release-verification](process/post-release-verification.md) | A release just deployed to production; defining what "released safely" means; an incident revealed a release was broken for hours before anyone noticed |
 | [scope-purity-checks](process/scope-purity-checks.md) | Proving a change/session/agent run touched nothing outside an allowed path set by filtering `git status --porcelain` output; a purity gate flags `?? dir/` for a directory that is wholly in scope; writing such a gate for an orchestration/CI workflow |
+| [new-symbols-without-a-consumer](process/new-symbols-without-a-consumer.md) | Deciding whether work split across parallel tasks/branches/sessions is done, where one side builds a function/endpoint/export and another is meant to call it; a feature that passed every gate renders nothing or an endpoint has no caller; scoping and filtering a census of new public symbols with zero cross-module production references (contract changes to an existing callee → backend/common/change-impact) |
+| [defect-class-sweep-over-a-fix](process/defect-class-sweep-over-a-fix.md) | Submitting a diff that answers review feedback or fixes a reported defect and that adds new functions/branches/call sites; a later review round raises the defect the previous round closed, in a different function of the same change; turning a reviewer's wording into a class query and deciding the review depth a fix diff gets |
 
 ## deliverables
 

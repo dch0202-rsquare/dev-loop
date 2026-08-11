@@ -11,7 +11,7 @@ sources:
   - https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html
   - https://auth0.com/docs/secure/tokens/refresh-tokens/refresh-token-rotation
 last_verified: 2026-07-10
-related: [databases-schema-design-requirements-to-tables, databases-indexing-index-selection, backend-common-reliability-timeouts-and-retries]
+related: [databases-schema-design-requirements-to-tables, databases-indexing-index-selection, backend-common-reliability-timeouts-and-retries, testing-quality-signed-link-assertions]
 ---
 
 # JWT Issuance and Verification on the Server

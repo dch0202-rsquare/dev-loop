@@ -8,7 +8,7 @@ sources:
   - https://git-scm.com/docs/git-status
   - "Local reproduction, git 2.50.1 (Apple Git-155), 2026-08-05: collapsed `?? qa/` vs -uall per-file expansion"
 last_verified: 2026-08-05
-related: [testing-quality-checks-that-cannot-pass, testing-quality-harness-reverse-controls]
+related: [testing-quality-checks-that-cannot-pass, testing-quality-harness-reverse-controls, qa-process-new-symbols-without-a-consumer]
 ---
 
 # Proving Scope Purity from `git status` Output
